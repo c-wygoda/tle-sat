@@ -11,3 +11,5 @@ poetry bundle check >/dev/null 2>&1  || {
   echo "==> Installing Poetry managed dependencies…"
   poetry install --with=dev
 }
+
+poetry run pre-commit install

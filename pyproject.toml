@@ -12,6 +12,7 @@ python = "^3.12"
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.2.0"
 pytest-coverage = "^0.0"
+pre-commit = "^3.7.0"
 
 [tool.ruff]
 line-length = 88

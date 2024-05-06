@@ -1,0 +1,17 @@
+name: bootstrap
+description: bootstrap project's python environment
+inputs:
+  python-version:
+    description: python version to use
+    default: "3.12"
+runs:
+  using: "composite"
+  steps:
+    - run: pipx install poetry
+      shell: sh
+    - uses: actions/setup-python@v5
+      with:
+        python-version: ${{ inputs.python-version }}
+        cache: poetry
+    - run: poetry install --with=dev
+      shell: sh
