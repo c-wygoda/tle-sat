@@ -9,12 +9,16 @@ jobs:
   test:
     name: test suite
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/bootstrap
       - name: run pytest
         shell: sh
-        run: ./scripts/test
+        run: ./scripts/test | tee pytest-coverage.txt
+      - name: comment coverage
+        uses: mishakav/pytest-coverage-comment@v1.1.51
 
   lint:
     name: style checks
