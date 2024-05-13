@@ -1,0 +1,33 @@
+name: run pre-commit autoupdate
+description: create PR with pre-commit config version updates
+
+inputs:
+  pre-commit-home:
+    description: cache dir to use
+    required: true
+    default: ${{ github.workspace }}/.pre-commit-cache
+
+outputs:
+  has-update:
+    description: are there updates?
+    value: ${{ steps.update.outputs.has-update }}
+
+runs:
+  using: "composite"
+  steps:
+    - id: update
+      shell: bash
+      run: |
+        pipx install pre-commit
+        pre-commit autoupdate
+        if [[ $(git status --porcelain .pre-commit-config.yaml) ]]; then
+          echo "has-update=yes" >> "$GITHUB_OUTPUT"
+        fi
+    - id: python-interpreter-hash
+      shell: bash
+      if: ${{ steps.update.outputs.has-update }}
+      run: echo "HASH=$(python -VV | sha256sum | cut -d' ' -f1)" >> $GITHUB_OUTPUT
+    - uses: actions/cache@v4
+      with:
+        path: ${{ inputs.pre-commit-home }}
+        key: pre-commit|${{ steps.python-interpreter-hash.outputs.HASH }}|${{ hashFiles('.pre-commit-config.yaml') }}
