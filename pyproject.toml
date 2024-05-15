@@ -10,6 +10,7 @@ readme = "README.md"
 python = "^3.12"
 skyfield = "^1.48"
 shapely = "^2.0.4"
+numpy = "^1.26.4"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.2.0"
