@@ -3,6 +3,7 @@ from pytest import approx, mark
 
 from beepbeepbeep.algebra import (
     project_vector_onto_plane,
+    rotate,
     unit_vector,
     vector_angle,
     vector_angle_signed,
@@ -53,3 +54,25 @@ def test_vector_angle_signed(v1, v2, n, angle):
 )
 def test_project_vector_onto_plane(v, n, r):
     assert (project_vector_onto_plane(v, n) == r).all()
+
+
+@mark.parametrize(
+    "v,axis,theta,r",
+    (
+        (
+            np.array([1, 1, 1]),
+            np.array([10, 0, 0]),
+            np.radians(90),
+            np.array([1.0, -1.0, 1.0]),
+        ),
+        (
+            np.array([1, 1, 1]),
+            np.array([10, 0, 0]),
+            np.radians(-90),
+            np.array([1.0, 1.0, -1.0]),
+        ),
+    ),
+)
+def test_rotation_matrix(v, axis, theta, r):
+    rotated = rotate(v, axis, theta)
+    assert rotated == approx(r)
