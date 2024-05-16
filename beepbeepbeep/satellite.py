@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from datetime import datetime, timezone
 
 import numpy as np
@@ -12,6 +13,12 @@ from beepbeepbeep.algebra import project_vector_onto_plane, vector_angle_signed
 def assert_is_utc(t: datetime):
     if t.tzinfo != timezone.utc:
         raise ValueError("datetime must be in utc")
+
+
+@dataclass
+class OffNadir:
+    along: float
+    across: float
 
 
 class Satellite:
@@ -37,8 +44,8 @@ class Satellite:
         alt = wgs84.height_of(pos).m
         return Point(ll.longitude.degrees, ll.latitude.degrees, alt)
 
-    def off_nadir(self, when: datetime, target: Point) -> tuple[float, float]:
-        sat_pos = self.at(when)
+    def off_nadir(self, t: datetime, target: Point) -> OffNadir:
+        sat_pos = self.at(t)
         sat_loc, sat_velocity = sat_pos.frame_xyz_and_velocity(itrs)
         target_loc: Distance = wgs84.latlon(target.y, target.x, target.z).itrs_xyz
         nadir_loc: Distance = wgs84.subpoint_of(sat_pos).itrs_xyz
