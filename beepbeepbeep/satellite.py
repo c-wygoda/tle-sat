@@ -2,12 +2,18 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 
 import numpy as np
-from shapely import Point
+from shapely import Point, Polygon
+from skyfield.geometry import line_and_ellipsoid_intersection
 from skyfield.positionlib import Distance, Geocentric
 from skyfield.sgp4lib import EarthSatellite
-from skyfield.toposlib import itrs, wgs84
+from skyfield.toposlib import GeographicPosition, ITRSPosition, itrs, wgs84
 
-from beepbeepbeep.algebra import project_vector_onto_plane, vector_angle_signed
+from beepbeepbeep.algebra import (
+    project_vector_onto_plane,
+    rotate,
+    unit_vector,
+    vector_angle_signed,
+)
 
 
 def assert_is_utc(t: datetime):
@@ -19,6 +25,12 @@ def assert_is_utc(t: datetime):
 class OffNadir:
     along: float
     across: float
+
+
+@dataclass
+class FieldOfView:
+    x: float
+    y: float
 
 
 class Satellite:
@@ -63,15 +75,55 @@ class Satellite:
             orbital_plane_normal,
         )
 
-        cross_angle = vector_angle_signed(
-            nadir_vector,
-            target_cross_vector,
-            cross_plane_normal,
+        cross_angle = np.degrees(
+            vector_angle_signed(
+                nadir_vector,
+                target_cross_vector,
+                cross_plane_normal,
+            )
         )
-        along_angle = vector_angle_signed(
-            nadir_vector,
-            target_along_vector,
-            orbital_plane_normal,
+        along_angle = np.degrees(
+            vector_angle_signed(
+                nadir_vector,
+                target_along_vector,
+                orbital_plane_normal,
+            )
         )
+        return OffNadir(along_angle, cross_angle)
 
-        return (along_angle, cross_angle)
+    def footprint(
+        self, t: datetime, off_nadir: OffNadir, fov=FieldOfView(2.0, 2.0)
+    ) -> Polygon:
+        sat_pos = self.at(t)
+        sat_loc, sat_velocity = sat_pos.frame_xyz_and_velocity(itrs)
+        nadir_loc: Distance = wgs84.subpoint_of(sat_pos).itrs_xyz
+
+        nadir_vector = nadir_loc.m - sat_loc.m
+        orbital_plane_normal = np.cross(nadir_vector, sat_velocity.m_per_s)
+        cross_plane_normal = np.cross(orbital_plane_normal, nadir_vector)
+
+        radii = [wgs84.radius.m, wgs84.radius.m, wgs84.polar_radius.m]
+
+        def ray(front: bool, right: bool) -> GeographicPosition:
+            a = off_nadir.along + 0.5 * (fov.y if front else -fov.y)
+            b = -off_nadir.across + 0.5 * (-fov.x if right else fov.x)
+
+            vector = rotate(nadir_vector, orbital_plane_normal, np.radians(a))
+            vector = rotate(vector, cross_plane_normal, np.radians(b))
+
+            intersection = line_and_ellipsoid_intersection(
+                sat_loc.m, unit_vector(vector), radii
+            )
+
+            pos = ITRSPosition(Distance(m=intersection)).at(sat_pos.t)
+            return wgs84.geographic_position_of(pos)
+
+        fr = ray(True, True)
+        fl = ray(True, False)
+        rl = ray(False, False)
+        rr = ray(False, True)
+
+        poly = Polygon(
+            [[p.longitude.degrees, p.latitude.degrees] for p in (fr, fl, rl, rr, fr)]
+        )
+        return poly

@@ -1,9 +1,9 @@
 from datetime import datetime, timezone
 
 from pytest import approx, mark, raises
-from shapely import Point
+from shapely import Point, Polygon
 
-from beepbeepbeep.satellite import OffNadir, Satellite
+from beepbeepbeep.satellite import FieldOfView, OffNadir, Satellite
 
 
 def test_position_invalid_datetime(polar_tle):
@@ -54,3 +54,30 @@ def test_off_nadir(polar_tle, t, o, e):
 
     assert on.across == approx(e.across, abs=0.1)
     assert on.along == approx(e.along, abs=0.1)
+
+
+@mark.parametrize(
+    "t, o, f, e",
+    (
+        (
+            datetime(2024, 4, 19, 12, 0, 0, 0, timezone.utc),
+            OffNadir(0, 45),
+            FieldOfView(2, 2),
+            Polygon(
+                (
+                    (127.7379246591503, 76.95181009374622),
+                    (129.391022866435, 77.1132119968597),
+                    (128.95920974658245, 77.3478604621005),
+                    (127.26201922293443, 77.19358515346873),
+                    (127.7379246591503, 76.95181009374622),
+                )
+            ),
+        ),
+    ),
+)
+def test_footprint(polar_tle, t, o, f, e):
+    sat = Satellite(polar_tle)
+
+    footprint = sat.footprint(t, o, f)
+
+    assert e.equals(footprint)
