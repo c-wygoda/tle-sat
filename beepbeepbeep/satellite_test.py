@@ -1,9 +1,15 @@
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from pytest import approx, mark, raises
 from shapely import Point, Polygon
 
-from beepbeepbeep.satellite import FieldOfView, OffNadir, Satellite
+from beepbeepbeep.satellite import (
+    FieldOfView,
+    OffNadir,
+    Pass,
+    Satellite,
+    TimeOfInterest,
+)
 
 
 def test_position_invalid_datetime(polar_tle):
@@ -81,3 +87,57 @@ def test_footprint(polar_tle, t, o, f, e):
     footprint = sat.footprint(t, o, f)
 
     assert e.equals(footprint)
+
+
+@mark.parametrize(
+    "t,target,passes",
+    (
+        (
+            datetime(2024, 4, 19, 12, 0, 0, 0, timezone.utc),
+            Point(151.6226382884999, 78.18538506762289, 0),
+            [
+                Pass(
+                    t=datetime(2024, 4, 19, 10, 24, 10, 13017, tzinfo=timezone.utc),
+                    off_nadir=OffNadir(
+                        along=0.003286938613857222,
+                        across=-43.59378581863903,
+                    ),
+                    azimuth=246.15947980920845,
+                    incidence=48.56258642963941,
+                    sun_azimuth=309.1665849748783,
+                    sun_elevation=4.040713411924881,
+                ),
+                Pass(
+                    t=datetime(2024, 4, 19, 12, 0, 0, 14, tzinfo=timezone.utc),
+                    off_nadir=OffNadir(
+                        along=0.012069782991351924,
+                        across=-2.3465815282339757,
+                    ),
+                    azimuth=269.51084026095725,
+                    incidence=2.5513557385532977,
+                    sun_azimuth=332.4719846650721,
+                    sun_elevation=0.9843777205236294,
+                ),
+                Pass(
+                    t=datetime(2024, 4, 19, 13, 35, 18, 176643, tzinfo=timezone.utc),
+                    off_nadir=OffNadir(
+                        along=0.036206722030285,
+                        across=41.38571967607966,
+                    ),
+                    azimuth=113.21914991193279,
+                    incidence=45.954108011810156,
+                    sun_azimuth=355.78438524781876,
+                    sun_elevation=-0.318769078583524,
+                ),
+            ],
+        ),
+    ),
+)
+def test_passes(polar_tle, t, target, passes):
+    sat = Satellite(polar_tle)
+
+    calculated = sat.passes(
+        TimeOfInterest(t - timedelta(hours=2), t + timedelta(hours=2)),
+        target,
+    )
+    assert calculated == passes
