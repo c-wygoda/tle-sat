@@ -2,11 +2,15 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 
 import numpy as np
+from platformdirs import user_cache_dir
 from shapely import Point, Polygon
+from skyfield.api import Loader, Time
 from skyfield.geometry import line_and_ellipsoid_intersection
+from skyfield.jpllib import ChebyshevPosition
 from skyfield.positionlib import Distance, Geocentric
 from skyfield.sgp4lib import EarthSatellite
 from skyfield.toposlib import GeographicPosition, ITRSPosition, itrs, wgs84
+from skyfield.vectorlib import VectorSum
 
 from beepbeepbeep.algebra import (
     project_vector_onto_plane,
@@ -33,10 +37,28 @@ class FieldOfView:
     y: float
 
 
+@dataclass
+class TimeOfInterest:
+    start: datetime
+    end: datetime
+
+
+@dataclass
+class Pass:
+    t: datetime
+    off_nadir: OffNadir
+    azimuth: float
+    incidence: float
+    sun_azimuth: float
+    sun_elevation: float
+
+
 class Satellite:
     model: EarthSatellite
+    sun: ChebyshevPosition
+    earth: VectorSum
 
-    def __init__(self, tle: str):
+    def __init__(self, tle: str, cache_dir: str | None = None):
         lines = tle.splitlines()
         match len(lines):
             case 2:
@@ -46,17 +68,23 @@ class Satellite:
             case _:
                 raise RuntimeError("tle strings must be 2 or 3 lines")
 
-    def at(self, t: datetime) -> Geocentric:
-        assert_is_utc(t)
-        return self.model.at(self.model.ts.from_datetime(t))
+        ephem = Loader(cache_dir or user_cache_dir(__package__))("de421.bsp")
+        self.sun = ephem["Sun"]
+        self.earth = ephem["Earth"]
 
-    def position(self, t: datetime) -> Point:
+    def at(self, t: datetime | Time) -> Geocentric:
+        if isinstance(t, datetime):
+            assert_is_utc(t)
+            t = self.model.ts.from_datetime(t)
+        return self.model.at(t)
+
+    def position(self, t: datetime | Time) -> Point:
         pos = self.at(t)
         ll = wgs84.subpoint_of(pos)
         alt = wgs84.height_of(pos).m
         return Point(ll.longitude.degrees, ll.latitude.degrees, alt)
 
-    def off_nadir(self, t: datetime, target: Point) -> OffNadir:
+    def off_nadir(self, t: datetime | Time, target: Point) -> OffNadir:
         sat_pos = self.at(t)
         sat_loc, sat_velocity = sat_pos.frame_xyz_and_velocity(itrs)
         target_loc: Distance = wgs84.latlon(target.y, target.x, target.z).itrs_xyz
@@ -92,7 +120,7 @@ class Satellite:
         return OffNadir(along_angle, cross_angle)
 
     def footprint(
-        self, t: datetime, off_nadir: OffNadir, fov=FieldOfView(2.0, 2.0)
+        self, t: datetime | Time, off_nadir: OffNadir, fov=FieldOfView(2.0, 2.0)
     ) -> Polygon:
         sat_pos = self.at(t)
         sat_loc, sat_velocity = sat_pos.frame_xyz_and_velocity(itrs)
@@ -127,3 +155,32 @@ class Satellite:
             [[p.longitude.degrees, p.latitude.degrees] for p in (fr, fl, rl, rr, fr)]
         )
         return poly
+
+    def passes(self, toi: TimeOfInterest, target: Point) -> list[Pass]:
+        assert_is_utc(toi.start)
+        assert_is_utc(toi.end)
+
+        topos = wgs84.latlon(target.y, target.x, target.z)
+        pass_events = self.model.find_events(
+            topos,
+            self.model.ts.from_datetime(toi.start),
+            self.model.ts.from_datetime(toi.end),
+        )
+
+        los = self.model - topos
+        loc = self.earth + topos
+
+        def build_pass(t: Time):
+            alt, az, _ = los.at(t).altaz()
+            sun_alt, sun_az, _ = loc.at(t).observe(self.sun).apparent().altaz()
+
+            return Pass(
+                t=t.utc_datetime(),
+                off_nadir=self.off_nadir(t, target),
+                azimuth=(az.degrees + 180.0) % 360.0,
+                incidence=90.0 - alt.degrees,
+                sun_azimuth=sun_az.degrees,
+                sun_elevation=sun_alt.degrees,
+            )
+
+        return [build_pass(pass_events[0][i]) for i in range(1, len(pass_events[0]), 3)]
