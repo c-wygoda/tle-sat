@@ -17,6 +17,9 @@ pytest = "^8.2.0"
 pytest-coverage = "^0.0"
 pre-commit = "^3.7.0"
 
+[tool.poetry.scripts]
+b3 = "beepbeepbeep.cli:main"
+
 [tool.ruff]
 line-length = 88
 
@@ -41,6 +44,7 @@ sort = "Cover"
 omit = [
     "**/*_test.py",
     "**/conftest.py",
+    "beepbeepbeep/cli.py",
 ]
 
 [tool.pytest.ini_options]
