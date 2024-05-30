@@ -5,10 +5,10 @@ from shapely import Point, Polygon
 
 from beepbeepbeep.satellite import (
     FieldOfView,
-    OffNadir,
     Pass,
     Satellite,
     TimeOfInterest,
+    ViewAngles,
 )
 
 
@@ -38,36 +38,36 @@ def test_position(polar_tle, t, p):
 
 
 @mark.parametrize(
-    "t,o,e",
+    "t,o,v",
     (
         (
             datetime(2024, 4, 19, 12, 0, 0, 0, timezone.utc),
             [-5, 0, 0],
-            OffNadir(-0.3, -11.5),
+            ViewAngles(-0.3, -11.5),
         ),
         (
             datetime(2024, 4, 19, 12, 0, 0, 0, timezone.utc),
             [5, 0, 0],
-            OffNadir(-0.7, 11.5),
+            ViewAngles(-0.7, 11.5),
         ),
     ),
 )
-def test_off_nadir(polar_tle, t, o, e):
+def test_view_angles(polar_tle, t, o, v):
     sat = Satellite(polar_tle)
     p = sat.position(t)
 
-    on = sat.off_nadir(t, Point(p.x + o[0], p.y + o[1], o[2]))
+    on = sat.view_angles(t, Point(p.x + o[0], p.y + o[1], o[2]))
 
-    assert on.across == approx(e.across, abs=0.1)
-    assert on.along == approx(e.along, abs=0.1)
+    assert on.across == approx(v.across, abs=0.1)
+    assert on.along == approx(v.along, abs=0.1)
 
 
 @mark.parametrize(
-    "t, o, f, e",
+    "t, v, f, e",
     (
         (
             datetime(2024, 4, 19, 12, 0, 0, 0, timezone.utc),
-            OffNadir(0, 45),
+            ViewAngles(0, 45),
             FieldOfView(2, 2),
             Polygon(
                 (
@@ -81,10 +81,10 @@ def test_off_nadir(polar_tle, t, o, e):
         ),
     ),
 )
-def test_footprint(polar_tle, t, o, f, e):
+def test_footprint(polar_tle, t, v, f, e):
     sat = Satellite(polar_tle)
 
-    footprint = sat.footprint(t, o, f)
+    footprint = sat.footprint(t, v, f)
 
     assert e.equals(footprint)
 
@@ -98,7 +98,7 @@ def test_footprint(polar_tle, t, o, f, e):
             [
                 Pass(
                     t=datetime(2024, 4, 19, 10, 24, 10, 13017, tzinfo=timezone.utc),
-                    off_nadir=OffNadir(
+                    view_angles=ViewAngles(
                         along=0.003286938613857222,
                         across=-43.59378581863903,
                     ),
@@ -109,7 +109,7 @@ def test_footprint(polar_tle, t, o, f, e):
                 ),
                 Pass(
                     t=datetime(2024, 4, 19, 12, 0, 0, 14, tzinfo=timezone.utc),
-                    off_nadir=OffNadir(
+                    view_angles=ViewAngles(
                         along=0.012069782991351924,
                         across=-2.3465815282339757,
                     ),
@@ -120,7 +120,7 @@ def test_footprint(polar_tle, t, o, f, e):
                 ),
                 Pass(
                     t=datetime(2024, 4, 19, 13, 35, 18, 176643, tzinfo=timezone.utc),
-                    off_nadir=OffNadir(
+                    view_angles=ViewAngles(
                         along=0.036206722030285,
                         across=41.38571967607966,
                     ),
