@@ -26,7 +26,7 @@ def assert_is_utc(t: datetime):
 
 
 @dataclass
-class OffNadir:
+class ViewAngles:
     along: float
     across: float
 
@@ -46,7 +46,7 @@ class TimeOfInterest:
 @dataclass
 class Pass:
     t: datetime
-    off_nadir: OffNadir
+    view_angles: ViewAngles
     azimuth: float
     incidence: float
     sun_azimuth: float
@@ -84,7 +84,7 @@ class Satellite:
         alt = wgs84.height_of(pos).m
         return Point(ll.longitude.degrees, ll.latitude.degrees, alt)
 
-    def off_nadir(self, t: datetime | Time, target: Point) -> OffNadir:
+    def view_angles(self, t: datetime | Time, target: Point) -> ViewAngles:
         sat_pos = self.at(t)
         sat_loc, sat_velocity = sat_pos.frame_xyz_and_velocity(itrs)
         target_loc: Distance = wgs84.latlon(target.y, target.x, target.z).itrs_xyz
@@ -117,10 +117,10 @@ class Satellite:
                 orbital_plane_normal,
             )
         )
-        return OffNadir(along_angle, cross_angle)
+        return ViewAngles(along_angle, cross_angle)
 
     def footprint(
-        self, t: datetime | Time, off_nadir: OffNadir, fov=FieldOfView(2.0, 2.0)
+        self, t: datetime | Time, view_angles: ViewAngles, fov=FieldOfView(2.0, 2.0)
     ) -> Polygon:
         sat_pos = self.at(t)
         sat_loc, sat_velocity = sat_pos.frame_xyz_and_velocity(itrs)
@@ -133,8 +133,8 @@ class Satellite:
         radii = [wgs84.radius.m, wgs84.radius.m, wgs84.polar_radius.m]
 
         def ray(front: bool, right: bool) -> GeographicPosition:
-            a = off_nadir.along + 0.5 * (fov.y if front else -fov.y)
-            b = -off_nadir.across + 0.5 * (-fov.x if right else fov.x)
+            a = view_angles.along + 0.5 * (fov.y if front else -fov.y)
+            b = -view_angles.across + 0.5 * (-fov.x if right else fov.x)
 
             vector = rotate(nadir_vector, orbital_plane_normal, np.radians(a))
             vector = rotate(vector, cross_plane_normal, np.radians(b))
@@ -176,7 +176,7 @@ class Satellite:
 
             return Pass(
                 t=t.utc_datetime(),
-                off_nadir=self.off_nadir(t, target),
+                view_angles=self.view_angles(t, target),
                 azimuth=(az.degrees + 180.0) % 360.0,
                 incidence=90.0 - alt.degrees,
                 sun_azimuth=sun_az.degrees,
