@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "beepbeepbeep"
-version = "0.1.0"
+version = "0.2.0"
 description = "EO Satellite TLE tools"
 authors = ["Christian Wygoda <christian.wygoda@satellitevu.com>"]
 license = "MIT"
