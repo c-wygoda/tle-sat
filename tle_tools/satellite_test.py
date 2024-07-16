@@ -3,7 +3,7 @@ from datetime import datetime, timedelta, timezone
 from pytest import approx, mark, raises
 from shapely import Point, Polygon
 
-from beepbeepbeep.satellite import (
+from tle_tools.satellite import (
     FieldOfView,
     Pass,
     Satellite,

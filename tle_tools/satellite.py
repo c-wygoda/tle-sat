@@ -12,7 +12,7 @@ from skyfield.sgp4lib import EarthSatellite
 from skyfield.toposlib import GeographicPosition, ITRSPosition, itrs, wgs84
 from skyfield.vectorlib import VectorSum
 
-from beepbeepbeep.algebra import (
+from tle_tools.algebra import (
     project_vector_onto_plane,
     rotate,
     unit_vector,
