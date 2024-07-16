@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "beepbeepbeep"
+name = "tle-tools"
 version = "0.2.0"
 description = "EO Satellite TLE tools"
 authors = ["Christian Wygoda <christian.wygoda@satellitevu.com>"]
@@ -19,7 +19,7 @@ pytest-coverage = "^0.0"
 pre-commit = "^3.7.0"
 
 [tool.poetry.scripts]
-b3 = "beepbeepbeep.cli:main"
+tle = "tle_tools.cli:main"
 
 [tool.ruff]
 line-length = 88
@@ -45,11 +45,11 @@ sort = "Cover"
 omit = [
     "**/*_test.py",
     "**/conftest.py",
-    "beepbeepbeep/cli.py",
+    "tle_tools/cli.py",
 ]
 
 [tool.pytest.ini_options]
-addopts="--cov=beepbeepbeep"
+addopts="--cov=tle_tools"
 
 [tool.commitizen]
 name = "cz_conventional_commits"
