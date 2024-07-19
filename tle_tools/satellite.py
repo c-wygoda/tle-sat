@@ -16,6 +16,7 @@ from tle_tools.algebra import (
     project_vector_onto_plane,
     rotate,
     unit_vector,
+    vector_angle,
     vector_angle_signed,
 )
 
@@ -29,6 +30,7 @@ def assert_is_utc(t: datetime):
 class ViewAngles:
     along: float
     across: float
+    off_nadir: float
 
 
 @dataclass
@@ -117,7 +119,9 @@ class Satellite:
                 orbital_plane_normal,
             )
         )
-        return ViewAngles(along_angle, cross_angle)
+        off_nadir_angle = np.degrees(vector_angle(nadir_vector, target_vector))
+
+        return ViewAngles(along_angle, cross_angle, off_nadir_angle)
 
     def footprint(
         self, t: datetime | Time, view_angles: ViewAngles, fov=FieldOfView(2.0, 2.0)
