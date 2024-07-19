@@ -43,12 +43,12 @@ def test_position(polar_tle, t, p):
         (
             datetime(2024, 4, 19, 12, 0, 0, 0, timezone.utc),
             [-5, 0, 0],
-            ViewAngles(-0.3, -11.5),
+            ViewAngles(-0.3, -11.5, 11.555752058027988),
         ),
         (
             datetime(2024, 4, 19, 12, 0, 0, 0, timezone.utc),
             [5, 0, 0],
-            ViewAngles(-0.7, 11.5),
+            ViewAngles(-0.7, 11.5, 11.555752058027988),
         ),
     ),
 )
@@ -60,6 +60,7 @@ def test_view_angles(polar_tle, t, o, v):
 
     assert on.across == approx(v.across, abs=0.1)
     assert on.along == approx(v.along, abs=0.1)
+    assert on.off_nadir == approx(v.off_nadir, abs=0.1)
 
 
 @mark.parametrize(
@@ -67,7 +68,7 @@ def test_view_angles(polar_tle, t, o, v):
     (
         (
             datetime(2024, 4, 19, 12, 0, 0, 0, timezone.utc),
-            ViewAngles(0, 45),
+            ViewAngles(0, 45, 45),
             FieldOfView(2, 2),
             Polygon(
                 (
@@ -101,6 +102,7 @@ def test_footprint(polar_tle, t, v, f, e):
                     view_angles=ViewAngles(
                         along=0.003286938613857222,
                         across=-43.59378581863903,
+                        off_nadir=43.59378587058238,
                     ),
                     azimuth=246.15947980920845,
                     incidence=48.56258642963941,
@@ -112,6 +114,7 @@ def test_footprint(polar_tle, t, v, f, e):
                     view_angles=ViewAngles(
                         along=0.012069782991351924,
                         across=-2.3465815282339757,
+                        off_nadir=2.3466124994902096,
                     ),
                     azimuth=269.51084026095725,
                     incidence=2.5513557385532977,
@@ -123,6 +126,7 @@ def test_footprint(polar_tle, t, v, f, e):
                     view_angles=ViewAngles(
                         along=0.036206722030285,
                         across=41.38571967607966,
+                        off_nadir=41.38572698419228,
                     ),
                     azimuth=113.21914991193279,
                     incidence=45.954108011810156,
