@@ -33,5 +33,6 @@ jobs:
           git add .pre-commit-config.yaml
           git checkout -b update-pre-commit-hooks
           git commit -m "chore: update pre-commit hooks"
+          git pull --rebase origin update-pre-commit-hooks || true
           git push origin update-pre-commit-hooks
           gh pr create --fill
