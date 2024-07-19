@@ -1,3 +1,9 @@
+## v0.3.0 (2024-07-19)
+
+### Feat
+
+- add absolute off-nadir angle to view angles
+
 ## v0.2.1 (2024-07-16)
 
 ### Refactor
