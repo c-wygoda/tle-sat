@@ -1,7 +1,7 @@
 [tool.poetry]
-name = "tle-tools"
+name = "tle-sat"
 version = "0.3.0"
-description = "EO Satellite TLE tools"
+description = "TLE Sat Sim"
 authors = ["Christian Wygoda <christian.wygoda@satellitevu.com>"]
 license = "MIT"
 readme = "README.md"
@@ -19,7 +19,7 @@ pytest-coverage = "^0.0"
 pre-commit = "^3.7.0"
 
 [tool.poetry.scripts]
-tle = "tle_tools.cli:main"
+tle = "tle_sat.cli:main"
 
 [tool.ruff]
 line-length = 88
@@ -45,11 +45,11 @@ sort = "Cover"
 omit = [
     "**/*_test.py",
     "**/conftest.py",
-    "tle_tools/cli.py",
+    "tle_sat/cli.py",
 ]
 
 [tool.pytest.ini_options]
-addopts="--cov=tle_tools"
+addopts="--cov=tle_sat"
 
 [tool.commitizen]
 name = "cz_conventional_commits"

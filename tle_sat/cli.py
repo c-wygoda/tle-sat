@@ -4,7 +4,7 @@ from json import dumps
 
 from shapely import LineString, Point
 
-from tle_tools.satellite import FieldOfView, OffNadir, Satellite, TimeOfInterest
+from tle_sat.satellite import FieldOfView, OffNadir, Satellite, TimeOfInterest
 
 DEFAULT_TLE = (
     "1 99999U 24001A   24001.50000000  .00001103  00000-0  33518-4 0  9998\n"

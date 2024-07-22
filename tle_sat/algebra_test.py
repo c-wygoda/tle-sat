@@ -1,7 +1,7 @@
 import numpy as np
 from pytest import approx, mark
 
-from tle_tools.algebra import (
+from tle_sat.algebra import (
     project_vector_onto_plane,
     rotate,
     unit_vector,
