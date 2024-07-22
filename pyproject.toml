@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "tle-sat"
-version = "0.3.0"
+version = "0.3.1"
 description = "TLE Sat Sim"
 authors = ["Christian Wygoda <christian.wygoda@satellitevu.com>"]
 license = "MIT"

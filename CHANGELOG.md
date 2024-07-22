@@ -1,3 +1,9 @@
+## v0.3.1 (2024-07-22)
+
+### Refactor
+
+- rename package to tle-sat
+
 ## v0.3.0 (2024-07-19)
 
 ### Feat
