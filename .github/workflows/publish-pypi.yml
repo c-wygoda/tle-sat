@@ -1,0 +1,21 @@
+name: publish new version to pypi
+
+on:
+  push:
+    tags:
+      - v*.*.*
+
+jobs:
+  pypi-publish:
+    name: upload release to PyPI
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/bootstrap
+      - run: pipx install poetry
+      - run: poetry build
+      - name: publish package distributions to pypi
+        uses: pypa/gh-action-pypi-publish@release/v1
