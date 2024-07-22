@@ -42,8 +42,6 @@ jobs:
         run: |
           if [ "${PREVIOUS_REVISION}" != "${REVISION}" ]; then
             echo "is_new_version=1" >>"$GITHUB_OUTPUT"
-          else
-            echo "is_new_version=0" >>"$GITHUB_OUTPUT"
           fi
       # pushing seperately to use correct auth set up during actions/checkout
       - run: git push
