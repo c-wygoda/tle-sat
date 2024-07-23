@@ -1,3 +1,9 @@
+## v0.4.0 (2024-07-23)
+
+### Feat
+
+- support python versions 3.10 and up
+
 ## v0.3.1 (2024-07-22)
 
 ### Refactor
