@@ -1,0 +1,13 @@
+#!/bin/sh
+
+# scripts/test: Run test suite for application using nox.
+
+
+set -e
+
+cd "$(dirname "$0")/.."
+
+echo "==> Running tests…"
+
+pyenv shell 3.10 3.11 3.12
+poetry run nox "$@"
