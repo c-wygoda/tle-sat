@@ -1,3 +1,9 @@
+## v0.4.1 (2024-09-27)
+
+### Fix
+
+- push both branch and tags on release
+
 ## v0.4.0 (2024-07-23)
 
 ### Feat
