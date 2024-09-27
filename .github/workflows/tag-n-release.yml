@@ -44,7 +44,7 @@ jobs:
             echo "is_new_version=1" >>"$GITHUB_OUTPUT"
           fi
       # pushing seperately to use correct auth set up during actions/checkout
-      - run: git push
+      - run: git push main:main --tags
       - id: changelog
         run: |
           {
