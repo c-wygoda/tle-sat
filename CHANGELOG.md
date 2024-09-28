@@ -1,3 +1,10 @@
+## v0.5.0 (2024-09-28)
+
+### Feat
+
+- export main attributes in package directly
+- catch footprint error with a custom exception
+
 ## v0.4.1 (2024-09-27)
 
 ### Fix
