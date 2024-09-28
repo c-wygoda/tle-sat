@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from datetime import datetime, timezone
+from math import isnan
 
 import numpy as np
 from platformdirs import user_cache_dir
@@ -53,6 +54,10 @@ class Pass:
     incidence: float
     sun_azimuth: float
     sun_elevation: float
+
+
+class FootprintError(OverflowError):
+    """"""
 
 
 class Satellite:
@@ -148,17 +153,21 @@ class Satellite:
             )
 
             pos = ITRSPosition(Distance(m=intersection)).at(sat_pos.t)
+            if any((isnan(p) for p in pos.position.m)):
+                raise OverflowError("ray not intersection earth")
             return wgs84.geographic_position_of(pos)
 
-        fr = ray(True, True)
-        fl = ray(True, False)
-        rl = ray(False, False)
-        rr = ray(False, True)
+        try:
+            fr = ray(True, True)
+            fl = ray(True, False)
+            rl = ray(False, False)
+            rr = ray(False, True)
+        except OverflowError as exc:
+            raise FootprintError("footprint not fully on earth") from exc
 
-        poly = Polygon(
+        return Polygon(
             [[p.longitude.degrees, p.latitude.degrees] for p in (fr, fl, rl, rr, fr)]
         )
-        return poly
 
     def passes(self, toi: TimeOfInterest, target: Point) -> list[Pass]:
         assert_is_utc(toi.start)
