@@ -1,3 +1,4 @@
+from contextlib import nullcontext
 from datetime import datetime, timedelta, timezone
 
 from pytest import approx, mark, raises
@@ -5,6 +6,7 @@ from shapely import Point, Polygon
 
 from tle_sat.satellite import (
     FieldOfView,
+    FootprintError,
     Pass,
     Satellite,
     TimeOfInterest,
@@ -64,30 +66,38 @@ def test_view_angles(polar_tle, t, o, v):
 
 
 @mark.parametrize(
-    "t, v, f, e",
+    "t, v, f, expectation",
     (
         (
             datetime(2024, 4, 19, 12, 0, 0, 0, timezone.utc),
             ViewAngles(0, 45, 45),
             FieldOfView(2, 2),
-            Polygon(
-                (
-                    (127.7379246591503, 76.95181009374622),
-                    (129.391022866435, 77.1132119968597),
-                    (128.95920974658245, 77.3478604621005),
-                    (127.26201922293443, 77.19358515346873),
-                    (127.7379246591503, 76.95181009374622),
+            nullcontext(
+                Polygon(
+                    (
+                        (127.7379246591503, 76.95181009374622),
+                        (129.391022866435, 77.1132119968597),
+                        (128.95920974658245, 77.3478604621005),
+                        (127.26201922293443, 77.19358515346873),
+                        (127.7379246591503, 76.95181009374622),
+                    )
                 )
             ),
         ),
+        (
+            datetime(2024, 4, 19, 12, 0, 0, 0, timezone.utc),
+            ViewAngles(0, 90, 45),
+            FieldOfView(2, 2),
+            raises(FootprintError, match="footprint not fully on earth"),
+        ),
     ),
 )
-def test_footprint(polar_tle, t, v, f, e):
+def test_footprint(polar_tle, t, v, f, expectation):
     sat = Satellite(polar_tle)
 
-    footprint = sat.footprint(t, v, f)
-
-    assert e.equals(footprint)
+    with expectation as e:
+        footprint = sat.footprint(t, v, f)
+        assert e.equals(footprint)
 
 
 @mark.parametrize(
