@@ -4,7 +4,12 @@ from json import dumps
 
 from shapely import LineString, Point
 
-from tle_sat.satellite import FieldOfView, OffNadir, Satellite, TimeOfInterest
+from tle_sat.satellite import (
+    FieldOfView,
+    Satellite,
+    TimeOfInterest,
+    ViewAngles,
+)
 
 DEFAULT_TLE = (
     "1 99999U 24001A   24001.50000000  .00001103  00000-0  33518-4 0  9998\n"
@@ -40,11 +45,11 @@ def parse_latlng(value: str):
 
 
 def footprint(
-    tle: str, t: datetime, off_nadir: OffNadir, fov: FieldOfView, pretty: bool
+    tle: str, t: datetime, view_angles: ViewAngles, fov: FieldOfView, pretty: bool
 ):
     sat = Satellite(tle)
     p0 = sat.position(t)
-    poly = sat.footprint(t, off_nadir, fov)
+    poly = sat.footprint(t, view_angles, fov)
 
     track = LineString([sat.position(t + timedelta(seconds=s)) for s in range(10)])
 
@@ -69,8 +74,8 @@ def footprint(
                         "label": "footprint",
                         "fov-x": fov.x,
                         "fov-y": fov.y,
-                        "off-nadir-x": off_nadir.across,
-                        "off-nadir-y": off_nadir.along,
+                        "off-nadir-x": view_angles.across,
+                        "off-nadir-y": view_angles.along,
                         "datetime": t.isoformat(),
                     },
                 },
@@ -139,7 +144,7 @@ def main():
             footprint(
                 args.tle,
                 args.t,
-                OffNadir(args.off_nadir_y, args.off_nadir_x),
+                ViewAngles(args.off_nadir_y, args.off_nadir_x, 0.0),
                 FieldOfView(args.fov_x, args.fov_y),
                 args.pretty,
             )
