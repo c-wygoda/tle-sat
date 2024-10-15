@@ -1,3 +1,15 @@
+## v0.6.0 (2024-10-15)
+
+### Feat
+
+- add method to compute swath
+- add orbit_track method
+- add method to compute LOS intersection with earth
+
+### Fix
+
+- wrong import in CLI
+
 ## v0.5.0 (2024-09-28)
 
 ### Feat
