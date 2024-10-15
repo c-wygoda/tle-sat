@@ -130,6 +130,40 @@ def orbit_track(tle: str, t0: datetime, t1: datetime, step: float, pretty: bool)
     print(ls)
 
 
+def swath(
+    tle: str,
+    t0: datetime,
+    t1: datetime,
+    fov: FieldOfView,
+    roll_start: float,
+    roll_end: float,
+    step: float,
+    steps_across: int,
+    pretty: bool,
+):
+    sat = Satellite(tle)
+    geom = sat.swath(
+        TimeOfInterest(t0, t1), fov, roll_start, roll_end, step, steps_across
+    )
+
+    ls = dumps(
+        {
+            "type": "Feature",
+            "geometry": geom.__geo_interface__,
+            "properties": {
+                "start": t0.isoformat(),
+                "end": t1.isoformat(),
+                "fov-x": fov.x,
+                "fov-y": fov.y,
+                "roll-start": roll_start,
+                "roll-end": roll_end,
+            },
+        },
+        indent=2 if pretty else None,
+    )
+    print(ls)
+
+
 def main():
     now = datetime.now(timezone.utc)
     parser = ArgumentParser()
@@ -162,6 +196,17 @@ def main():
     orbit_track_parser.add_argument("--step", type=float, default=1.0)
     orbit_track_parser.add_argument("--pretty", action="store_true")
 
+    swath_parser = commands.add_parser("swath")
+    swath_parser.add_argument("--start", type=parse_date, default=now.isoformat())
+    swath_parser.add_argument("--duration", type=parse_positive_float, default=10)
+    swath_parser.add_argument("--step", type=float, default=10.0)
+    swath_parser.add_argument("--steps-across", type=int, default=10)
+    swath_parser.add_argument("--fov-x", type=parse_positive_float, default=2.0)
+    swath_parser.add_argument("--fov-y", type=parse_positive_float, default=2.0)
+    swath_parser.add_argument("--roll-start", type=float, default=-15.0)
+    swath_parser.add_argument("--roll-end", type=float, default=15.0)
+    swath_parser.add_argument("--pretty", action="store_true")
+
     args = parser.parse_args()
 
     match args.command:
@@ -187,6 +232,18 @@ def main():
                 args.start,
                 args.start + timedelta(minutes=args.duration),
                 args.step,
+                args.pretty,
+            )
+        case "swath":
+            swath(
+                args.tle,
+                args.start,
+                args.start + timedelta(minutes=args.duration),
+                FieldOfView(args.fov_x, args.fov_y),
+                args.roll_start,
+                args.roll_end,
+                args.step,
+                args.steps_across,
                 args.pretty,
             )
         case _:

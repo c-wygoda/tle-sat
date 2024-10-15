@@ -233,3 +233,57 @@ class Satellite:
                 break
             t += timedelta(seconds=step)
         return LineString(points)
+
+    def swath(
+        self,
+        toi: TimeOfInterest,
+        fov: FieldOfView,
+        roll_0: float = 0.0,
+        roll_1: float = 0.0,
+        step: float = 1.0,
+        steps_across: int = 10,
+    ):
+        assert_is_utc(toi.start)
+        assert_is_utc(toi.end)
+        if step <= 0.0:
+            raise RuntimeError("step must be > 0")
+        if steps_across <= 0:
+            raise RuntimeError("steps_across must be > 0")
+
+        t = toi.start
+        points_left = []
+        points_right = []
+        while True:
+            t = min(t, toi.end)
+            for right in (False, True):
+                ona = roll_1 if right else roll_0
+                roll = (ona) + (1 if right else -1) * 0.5 * fov.x
+                (points_right if right else points_left).append(self.los(t, roll, 0))
+            if t == toi.end:
+                break
+            t += timedelta(seconds=step)
+        points_left.reverse()
+
+        width = roll_1 - roll_0 + fov.x
+        steps = steps_across + 1
+        step_width = width / steps_across
+        points_rear = [
+            self.los(
+                toi.start,
+                roll=(roll_0 - 0.5 * fov.x) + i * step_width,
+                pitch=-0.5 * fov.y,
+            )
+            for i in range(steps)
+        ]
+        points_front = [
+            self.los(
+                toi.end,
+                roll=(roll_0 - 0.5 * fov.x) + i * step_width,
+                pitch=0.5 * fov.y,
+            )
+            for i in range(steps - 1, -1, -1)
+        ]
+
+        pts = points_rear + points_right + points_front + points_left
+        pts += [pts[0]]
+        return Polygon(pts)
