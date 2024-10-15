@@ -10,7 +10,7 @@ from skyfield.geometry import line_and_ellipsoid_intersection
 from skyfield.jpllib import ChebyshevPosition
 from skyfield.positionlib import Distance, Geocentric
 from skyfield.sgp4lib import EarthSatellite
-from skyfield.toposlib import GeographicPosition, ITRSPosition, itrs, wgs84
+from skyfield.toposlib import ITRSPosition, itrs, wgs84
 from skyfield.vectorlib import VectorSum
 
 from tle_sat.algebra import (
@@ -128,46 +128,56 @@ class Satellite:
 
         return ViewAngles(along_angle, cross_angle, off_nadir_angle)
 
-    def footprint(
-        self, t: datetime | Time, view_angles: ViewAngles, fov=FieldOfView(2.0, 2.0)
-    ) -> Polygon:
+    def los(self, t: datetime | Time, roll: float, pitch: float):
         sat_pos = self.at(t)
         sat_loc, sat_velocity = sat_pos.frame_xyz_and_velocity(itrs)
         nadir_loc: Distance = wgs84.subpoint_of(sat_pos).itrs_xyz
-
         nadir_vector = nadir_loc.m - sat_loc.m
         orbital_plane_normal = np.cross(nadir_vector, sat_velocity.m_per_s)
         cross_plane_normal = np.cross(orbital_plane_normal, nadir_vector)
 
+        vector = rotate(nadir_vector, orbital_plane_normal, np.radians(pitch))
+        vector = rotate(vector, cross_plane_normal, np.radians(roll))
+
         radii = [wgs84.radius.m, wgs84.radius.m, wgs84.polar_radius.m]
+        intersection = line_and_ellipsoid_intersection(
+            sat_loc.m, unit_vector(vector), radii
+        )
 
-        def ray(front: bool, right: bool) -> GeographicPosition:
-            a = view_angles.along + 0.5 * (fov.y if front else -fov.y)
-            b = -view_angles.across + 0.5 * (-fov.x if right else fov.x)
+        pos = ITRSPosition(Distance(m=intersection)).at(sat_pos.t)
+        if any((isnan(p) for p in pos.position.m)):
+            raise OverflowError("LOS not intersecting earth")
+        geo_pos = wgs84.geographic_position_of(pos)
+        return Point(geo_pos.longitude.degrees, geo_pos.latitude.degrees)
 
-            vector = rotate(nadir_vector, orbital_plane_normal, np.radians(a))
-            vector = rotate(vector, cross_plane_normal, np.radians(b))
-
-            intersection = line_and_ellipsoid_intersection(
-                sat_loc.m, unit_vector(vector), radii
-            )
-
-            pos = ITRSPosition(Distance(m=intersection)).at(sat_pos.t)
-            if any((isnan(p) for p in pos.position.m)):
-                raise OverflowError("ray not intersection earth")
-            return wgs84.geographic_position_of(pos)
-
+    def footprint(
+        self, t: datetime | Time, view_angles: ViewAngles, fov=FieldOfView(2.0, 2.0)
+    ) -> Polygon:
         try:
-            fr = ray(True, True)
-            fl = ray(True, False)
-            rl = ray(False, False)
-            rr = ray(False, True)
+            fr = self.los(
+                t,
+                -view_angles.across - 0.5 * fov.x,
+                view_angles.along + 0.5 * fov.y,
+            )
+            fl = self.los(
+                t,
+                -view_angles.across + 0.5 * fov.x,
+                view_angles.along + 0.5 * fov.y,
+            )
+            rl = self.los(
+                t,
+                -view_angles.across + 0.5 * fov.x,
+                view_angles.along - 0.5 * fov.y,
+            )
+            rr = self.los(
+                t,
+                -view_angles.across - 0.5 * fov.x,
+                view_angles.along - 0.5 * fov.y,
+            )
         except OverflowError as exc:
             raise FootprintError("footprint not fully on earth") from exc
 
-        return Polygon(
-            [[p.longitude.degrees, p.latitude.degrees] for p in (fr, fl, rl, rr, fr)]
-        )
+        return Polygon([fr, fl, rl, rr, fr])
 
     def passes(self, toi: TimeOfInterest, target: Point) -> list[Pass]:
         assert_is_utc(toi.start)
