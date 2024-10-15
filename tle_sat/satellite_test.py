@@ -2,7 +2,7 @@ from contextlib import nullcontext
 from datetime import datetime, timedelta, timezone
 
 from pytest import approx, mark, raises
-from shapely import Point, Polygon
+from shapely import Point, Polygon, is_ccw
 
 from tle_sat.satellite import (
     FieldOfView,
@@ -98,6 +98,10 @@ def test_footprint(polar_tle, t, v, f, expectation):
     with expectation as e:
         footprint = sat.footprint(t, v, f)
         assert e.equals(footprint)
+
+        if isinstance(e, Polygon):
+            assert is_ccw(e.exterior)
+            assert all(not is_ccw(interior) for interior in e.interiors)
 
 
 @mark.parametrize(
