@@ -113,6 +113,23 @@ def passes(tle: str, t0: datetime, t1: datetime, target: Point, pretty: bool):
     print(fc)
 
 
+def orbit_track(tle: str, t0: datetime, t1: datetime, step: float, pretty: bool):
+    sat = Satellite(tle)
+    track = sat.orbit_track(TimeOfInterest(t0, t1), step)
+    ls = dumps(
+        {
+            "type": "Feature",
+            "geometry": track.__geo_interface__,
+            "properties": {
+                "start": t0.isoformat(),
+                "end": t1.isoformat(),
+            },
+        },
+        indent=2 if pretty else None,
+    )
+    print(ls)
+
+
 def main():
     now = datetime.now(timezone.utc)
     parser = ArgumentParser()
@@ -137,6 +154,14 @@ def main():
     passes_parser.add_argument("--pretty", action="store_true")
     passes_parser.add_argument("latlng", type=parse_latlng)
 
+    orbit_track_parser = commands.add_parser("orbit-track")
+    orbit_track_parser.add_argument("--start", type=parse_date, default=now.isoformat())
+    orbit_track_parser.add_argument(
+        "--duration", type=parse_positive_float, default=6 * 60
+    )
+    orbit_track_parser.add_argument("--step", type=float, default=1.0)
+    orbit_track_parser.add_argument("--pretty", action="store_true")
+
     args = parser.parse_args()
 
     match args.command:
@@ -154,6 +179,14 @@ def main():
                 args.start,
                 args.start + timedelta(minutes=args.duration),
                 Point(args.latlng),
+                args.pretty,
+            )
+        case "orbit-track":
+            orbit_track(
+                args.tle,
+                args.start,
+                args.start + timedelta(minutes=args.duration),
+                args.step,
                 args.pretty,
             )
         case _:

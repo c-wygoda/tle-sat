@@ -1,10 +1,10 @@
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from math import isnan
 
 import numpy as np
 from platformdirs import user_cache_dir
-from shapely import Point, Polygon
+from shapely import LineString, Point, Polygon
 from skyfield.api import Loader, Time
 from skyfield.geometry import line_and_ellipsoid_intersection
 from skyfield.jpllib import ChebyshevPosition
@@ -207,3 +207,29 @@ class Satellite:
             )
 
         return [build_pass(pass_events[0][i]) for i in range(1, len(pass_events[0]), 3)]
+
+    def orbit_track(self, toi: TimeOfInterest, step: float = 1.0):
+        assert_is_utc(toi.start)
+        assert_is_utc(toi.end)
+        if step <= 0.0:
+            raise RuntimeError("step must be > 0")
+
+        t = toi.start
+        points = []
+        while True:
+            t = min(t, toi.end)
+
+            sat_pos = self.at(t)
+            nadir_pos = wgs84.geographic_position_of(sat_pos)
+            points.append(
+                Point(
+                    nadir_pos.longitude.degrees,
+                    nadir_pos.latitude.degrees,
+                    nadir_pos.elevation.m,
+                )
+            )
+
+            if t == toi.end:
+                break
+            t += timedelta(seconds=step)
+        return LineString(points)
