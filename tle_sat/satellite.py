@@ -65,7 +65,12 @@ class Satellite:
     sun: ChebyshevPosition
     earth: VectorSum
 
-    def __init__(self, tle: str, cache_dir: str | None = None):
+    def __init__(
+        self,
+        tle: str,
+        cache_dir: str | None = None,
+        ephem_filename="de421.bsp",
+    ):
         lines = tle.splitlines()
         match len(lines):
             case 2:
@@ -75,7 +80,7 @@ class Satellite:
             case _:
                 raise RuntimeError("tle strings must be 2 or 3 lines")
 
-        ephem = Loader(cache_dir or user_cache_dir(__package__))("de421.bsp")
+        ephem = Loader(cache_dir or user_cache_dir(__package__))(ephem_filename)
         self.sun = ephem["Sun"]
         self.earth = ephem["Earth"]
 
