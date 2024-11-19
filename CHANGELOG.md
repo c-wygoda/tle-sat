@@ -1,3 +1,9 @@
+## v0.7.0 (2024-11-19)
+
+### Feat
+
+- allow setting ephemeris filename
+
 ## v0.6.0 (2024-10-15)
 
 ### Feat
