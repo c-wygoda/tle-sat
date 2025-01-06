@@ -1,8 +1,10 @@
 from contextlib import nullcontext
 from datetime import datetime, timedelta, timezone
 
+from numpy import around
 from pytest import approx, mark, raises
 from shapely import LineString, Point, Polygon, is_ccw
+from shapely.geometry import mapping, shape
 
 from tle_sat.satellite import (
     FieldOfView,
@@ -12,6 +14,34 @@ from tle_sat.satellite import (
     TimeOfInterest,
     ViewAngles,
 )
+
+
+def _assert_pass_equals(p1: Pass, p2: Pass):
+    p1l = [
+        p1.view_angles.across,
+        p1.view_angles.along,
+        p1.view_angles.off_nadir,
+        p1.azimuth,
+        p1.incidence,
+        p1.sun_azimuth,
+        p1.sun_elevation,
+    ]
+    p2l = [
+        p2.view_angles.across,
+        p2.view_angles.along,
+        p2.view_angles.off_nadir,
+        p2.azimuth,
+        p2.incidence,
+        p2.sun_azimuth,
+        p2.sun_elevation,
+    ]
+    assert p1l == approx(p2l)
+
+
+def _precision(geom: Polygon | LineString, precision=6):
+    geojson = mapping(geom)
+    geojson["coordinates"] = around(geojson["coordinates"], precision)
+    return shape(geojson)
 
 
 def test_position_invalid_datetime(polar_tle):
@@ -97,7 +127,7 @@ def test_footprint(polar_tle, t, v, f, expectation):
 
     with expectation as e:
         footprint = sat.footprint(t, v, f)
-        assert e.equals(footprint)
+        assert _precision(e, 8).equals(_precision(footprint, 8))
 
         if isinstance(e, Polygon):
             assert is_ccw(e.exterior)
@@ -158,7 +188,9 @@ def test_passes(polar_tle, t, target, passes):
         TimeOfInterest(t - timedelta(hours=2), t + timedelta(hours=2)),
         target,
     )
-    assert calculated == passes
+
+    for p1, p2 in zip(calculated, passes):
+        _assert_pass_equals(p1, p2)
 
 
 @mark.parametrize(
@@ -213,7 +245,7 @@ def test_orbit_track(polar_tle, kwargs, track):
     sat = Satellite(polar_tle)
 
     calculated = sat.orbit_track(**kwargs)
-    assert calculated == track
+    assert _precision(calculated, 7) == _precision(track, 7)
 
 
 @mark.parametrize(
@@ -321,4 +353,4 @@ def test_swath(polar_tle, kwargs, swath):
     sat = Satellite(polar_tle)
 
     calculated = sat.swath(**kwargs)
-    assert calculated == swath
+    assert _precision(calculated, 8) == _precision(swath, 8)

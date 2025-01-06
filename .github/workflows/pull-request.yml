@@ -20,7 +20,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: run pytest
-        shell: sh
+        shell: bash
         run: ./scripts/test | tee pytest-coverage.txt
       - name: comment coverage
         if: ${{ matrix.python-version == '3.12' }}
