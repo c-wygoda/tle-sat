@@ -131,7 +131,11 @@ class Satellite:
         )
         off_nadir_angle = np.degrees(vector_angle(nadir_vector, target_vector))
 
-        return ViewAngles(along_angle, cross_angle, off_nadir_angle)
+        return ViewAngles(
+            float(along_angle),
+            float(cross_angle),
+            float(off_nadir_angle),
+        )
 
     def los(self, t: datetime | Time, roll: float, pitch: float):
         sat_pos = self.at(t)
@@ -205,10 +209,10 @@ class Satellite:
             return Pass(
                 t=t.utc_datetime(),
                 view_angles=self.view_angles(t, target),
-                azimuth=(az.degrees + 180.0) % 360.0,
-                incidence=90.0 - alt.degrees,
-                sun_azimuth=sun_az.degrees,
-                sun_elevation=sun_alt.degrees,
+                azimuth=float((az.degrees + 180.0) % 360.0),
+                incidence=float(90.0 - alt.degrees),
+                sun_azimuth=float(sun_az.degrees),
+                sun_elevation=float(sun_alt.degrees),
             )
 
         return [build_pass(pass_events[0][i]) for i in range(1, len(pass_events[0]), 3)]
