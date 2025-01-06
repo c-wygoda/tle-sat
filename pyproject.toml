@@ -10,7 +10,7 @@ readme = "README.md"
 python = "^3.10"
 skyfield = "^1.48"
 shapely = "^2.0.4"
-numpy = "^1.26.4"
+numpy = "^2.2.1"
 platformdirs = "^4.2.2"
 
 [tool.poetry.group.dev.dependencies]
