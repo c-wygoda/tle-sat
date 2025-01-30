@@ -1,3 +1,9 @@
+## v0.8.1 (2025-01-30)
+
+### Fix
+
+- footprint was calculated on wrong side of orbit
+
 ## v0.8.0 (2025-01-06)
 
 ### Feat
