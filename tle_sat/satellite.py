@@ -163,24 +163,24 @@ class Satellite:
         self, t: datetime | Time, view_angles: ViewAngles, fov=FieldOfView(2.0, 2.0)
     ) -> Polygon:
         try:
-            fr = self.los(
-                t,
-                -view_angles.across - 0.5 * fov.x,
-                view_angles.along + 0.5 * fov.y,
-            )
             fl = self.los(
                 t,
-                -view_angles.across + 0.5 * fov.x,
+                view_angles.across + 0.5 * fov.x,
                 view_angles.along + 0.5 * fov.y,
             )
-            rl = self.los(
+            fr = self.los(
                 t,
-                -view_angles.across + 0.5 * fov.x,
-                view_angles.along - 0.5 * fov.y,
+                view_angles.across - 0.5 * fov.x,
+                view_angles.along + 0.5 * fov.y,
             )
             rr = self.los(
                 t,
-                -view_angles.across - 0.5 * fov.x,
+                view_angles.across - 0.5 * fov.x,
+                view_angles.along - 0.5 * fov.y,
+            )
+            rl = self.los(
+                t,
+                view_angles.across + 0.5 * fov.x,
                 view_angles.along - 0.5 * fov.y,
             )
         except OverflowError as exc:
