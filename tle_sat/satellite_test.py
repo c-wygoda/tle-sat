@@ -105,11 +105,11 @@ def test_view_angles(polar_tle, t, o, v):
             nullcontext(
                 Polygon(
                     (
-                        (127.7379246591503, 76.95181009374622),
-                        (129.391022866435, 77.1132119968597),
-                        (128.95920974658245, 77.3478604621005),
-                        (127.26201922293443, 77.19358515346873),
-                        (127.7379246591503, 76.95181009374622),
+                        (175.60359680143947, 76.98714113663245),
+                        (177.22394652541345, 76.81734966236745),
+                        (177.71903131823174, 77.05665979118999),
+                        (176.05545933500957, 77.21951692944646),
+                        (175.60359680143947, 76.98714113663245),
                     )
                 )
             ),
@@ -130,8 +130,42 @@ def test_footprint(polar_tle, t, v, f, expectation):
         assert _precision(e, 8).equals(_precision(footprint, 8))
 
         if isinstance(e, Polygon):
-            assert is_ccw(e.exterior)
+            assert is_ccw(footprint.exterior)
             assert all(not is_ccw(interior) for interior in e.interiors)
+
+
+@mark.parametrize(
+    "target,t,footprint",
+    (
+        (
+            Point(13, 53, 0),
+            datetime(2024, 4, 19, 21, 39, 59, tzinfo=timezone.utc),
+            Polygon(
+                (
+                    (13.20496447259038, 52.87415752284107),
+                    (12.758567800131482, 52.90986652401911),
+                    (12.799711072078717, 53.12031287404936),
+                    (13.249444062185855, 53.090245713914435),
+                    (13.20496447259038, 52.87415752284107),
+                )
+            ),
+        ),
+    ),
+)
+def test_pass_footprint(polar_tle, target: Point, t: datetime, footprint: Polygon):
+    sat = Satellite(polar_tle)
+
+    passes = sat.passes(
+        TimeOfInterest(t - timedelta(minutes=15), t + timedelta(minutes=15)), target
+    )
+    assert len(passes) == 1
+    p = passes[0]
+
+    actual_footprint = sat.footprint(t=p.t, view_angles=p.view_angles)
+
+    assert _precision(footprint, 8).equals(_precision(actual_footprint, 8))
+    assert actual_footprint.contains(target)
+    assert _precision(footprint.centroid, 2).equals(_precision(target, 2))
 
 
 @mark.parametrize(
