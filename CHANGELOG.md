@@ -1,3 +1,9 @@
+## v0.8.2 (2025-06-06)
+
+### Fix
+
+- clip value to [-1.0, 1.0] before feeding into arccos
+
 ## v0.8.1 (2025-01-30)
 
 ### Fix
