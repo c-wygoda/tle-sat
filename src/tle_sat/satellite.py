@@ -215,7 +215,11 @@ class Satellite:
                 sun_elevation=float(sun_alt.degrees),
             )
 
-        return [build_pass(pass_events[0][i]) for i in range(1, len(pass_events[0]), 3)]
+        return [
+            build_pass(pass_events[0][i])
+            for i in range(len(pass_events[0]))
+            if pass_events[1][i] == 1
+        ]
 
     def orbit_track(self, toi: TimeOfInterest, step: float = 1.0):
         assert_is_utc(toi.start)

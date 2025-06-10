@@ -9,7 +9,7 @@ requires-python = "~=3.10"
 readme = "README.md"
 license = "MIT"
 dependencies = [
-    "skyfield~=1.48",
+    "skyfield~=1.53",
     "shapely>=2.0.4,<3",
     "numpy>1.26.4",
     "platformdirs>=4.2.2,<5",
