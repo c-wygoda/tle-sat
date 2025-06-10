@@ -45,6 +45,7 @@ jobs:
           fi
       - shell: bash
         run: |
+          uv lock
           git add CHANGELOG.md pyproject.toml uv.lock
           git commit -m "bump: version ${PREVIOUS_REVISION} → ${REVISION}"
       # pushing seperately to use correct auth set up during actions/checkout
