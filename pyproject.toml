@@ -1,6 +1,6 @@
 [project]
 name = "tle-sat"
-version = "0.8.6"
+version = "0.8.7"
 description = "TLE Sat Sim"
 authors = [
     { name = "Christian Wygoda", email = "christian.wygoda@satellitevu.com" },

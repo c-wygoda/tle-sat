@@ -1,3 +1,9 @@
+## v0.8.7 (2025-06-10)
+
+### Fix
+
+- create tag before pushing in bump job
+
 ## v0.8.6 (2025-06-10)
 
 ### Fix
