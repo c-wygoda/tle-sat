@@ -1,8 +1,12 @@
-from nox_poetry import Session, session
+from nox import Session, session
 
 
-@session(python=["3.10", "3.11", "3.12"])
+@session(python=["3.10", "3.11", "3.12"], venv_backend="uv")
 def tests(session: Session):
-    session.install("pytest", "pytest-coverage")
-    session.run_always("poetry", "install", external=True)
-    session.run("pytest")
+    session.run_install(
+        "uv",
+        "sync",
+        f"--python={session.virtualenv.location}",
+        env={"UV_PROJECT_ENVIRONMENT": session.virtualenv.location},
+    )
+    session.run("pytest", *session.posargs)

@@ -1,41 +1,41 @@
-[tool.poetry]
+[project]
 name = "tle-sat"
 version = "0.8.2"
 description = "TLE Sat Sim"
-authors = ["Christian Wygoda <christian.wygoda@satellitevu.com>"]
-license = "MIT"
+authors = [
+    { name = "Christian Wygoda", email = "christian.wygoda@satellitevu.com" },
+]
+requires-python = "~=3.10"
 readme = "README.md"
+license = "MIT"
+dependencies = [
+    "skyfield~=1.48",
+    "shapely>=2.0.4,<3",
+    "numpy>1.26.4",
+    "platformdirs>=4.2.2,<5",
+]
 
-[tool.poetry.dependencies]
-python = "^3.10"
-skyfield = "^1.48"
-shapely = "^2.0.4"
-numpy = ">1.26.4"
-platformdirs = "^4.2.2"
-
-[tool.poetry.group.dev.dependencies]
-pytest = "^8.2.0"
-pytest-coverage = "^0.0"
-pre-commit = "^3.7.0"
-nox = "^2024.4.15"
-nox-poetry = "^1.0.3"
-
-[tool.poetry.scripts]
+[project.scripts]
 tle = "tle_sat.cli:main"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.2.0,<9",
+    "pytest-coverage>=0.0,<0.1",
+    "pre-commit>=3.7.0,<4",
+    "nox>=2024.4.15,<2025",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [tool.ruff]
 line-length = 88
 
 [tool.ruff.lint]
 extend-ignore = ["E501", "UP007", "UP034"]
-select = [
-    "C9",
-    "E",
-    "F",
-    "I",
-    "W",
-    "UP"
-]
+select = ["C9", "E", "F", "I", "W", "UP"]
 
 [tool.ruff.lint.mccabe]
 max-complexity = 8
@@ -44,22 +44,14 @@ max-complexity = 8
 show_missing = true
 skip_empty = true
 sort = "Cover"
-omit = [
-    "**/*_test.py",
-    "**/conftest.py",
-    "tle_sat/cli.py",
-]
+omit = ["**/*_test.py", "**/conftest.py", "tle_sat/cli.py"]
 
 [tool.pytest.ini_options]
-addopts="--cov=tle_sat"
+addopts = "--cov=tle_sat"
 
 [tool.commitizen]
 name = "cz_conventional_commits"
 tag_format = "v$version"
 version_scheme = "semver2"
-version_provider = "poetry"
+version_provider = "pep621"
 update_changelog_on_bump = true
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"

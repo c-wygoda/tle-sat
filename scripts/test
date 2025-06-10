@@ -10,4 +10,4 @@ cd "$(dirname "$0")/.."
 
 echo "==> Running tests…"
 
-poetry run pytest "$@"
+uv run pytest "$@"

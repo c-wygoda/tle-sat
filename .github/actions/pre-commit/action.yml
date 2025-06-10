@@ -19,4 +19,4 @@ runs:
       shell: bash
       env:
         PRE_COMMIT_HOME: ${{ inputs.pre-commit-home }}
-      run: poetry run pre-commit run -a
+      run: uv run pre-commit run -a
