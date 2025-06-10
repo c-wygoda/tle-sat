@@ -1,3 +1,9 @@
+## v0.8.6 (2025-06-10)
+
+### Fix
+
+- update lockfile on bumping
+
 ## v0.8.5 (2025-06-10)
 
 ### Fix
