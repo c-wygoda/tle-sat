@@ -34,7 +34,7 @@ jobs:
         with:
           changelog_increment_filename: .body.md
           git_redirect_stderr: true
-          commit: true
+          commit: false
           push: false
           no_raise: 21
       - id: is-new-version
@@ -43,6 +43,10 @@ jobs:
           if [ "${PREVIOUS_REVISION}" != "${REVISION}" ]; then
             echo "is_new_version=1" >>"$GITHUB_OUTPUT"
           fi
+      - shell: bash
+        run: |
+          git add CHANGELOG.md pyproject.toml uv.lock
+          git commit -m "bump: version ${PREVIOUS_REVISION} → ${REVISION}"
       # pushing seperately to use correct auth set up during actions/checkout
       - run: git push origin main:main --tags
       - id: changelog
