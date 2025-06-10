@@ -29,6 +29,10 @@ jobs:
           # `fetch-depth` > 0 is required to have `ref` have an effect
           fetch-depth: 999
           fetch-tags: true
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
       - id: bump
         uses: commitizen-tools/commitizen-action@master
         with:
@@ -45,6 +49,7 @@ jobs:
           fi
       - shell: bash
         run: |
+          uv lock
           git add CHANGELOG.md pyproject.toml uv.lock
           git commit -m "bump: version ${PREVIOUS_REVISION} → ${REVISION}"
       # pushing seperately to use correct auth set up during actions/checkout
