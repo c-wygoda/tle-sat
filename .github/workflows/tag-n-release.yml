@@ -52,6 +52,7 @@ jobs:
           uv lock
           git add CHANGELOG.md pyproject.toml uv.lock
           git commit -m "bump: version ${PREVIOUS_REVISION} → ${REVISION}"
+          git tag "v${REVISION}"
       # pushing seperately to use correct auth set up during actions/checkout
       - run: git push origin main:main --tags
       - id: changelog
