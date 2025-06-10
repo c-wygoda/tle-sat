@@ -1,3 +1,9 @@
+## v0.8.5 (2025-06-10)
+
+### Fix
+
+- include uv.lock in release commit
+
 ## v0.8.4 (2025-06-10)
 
 ### Fix
