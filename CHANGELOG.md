@@ -1,3 +1,9 @@
+## v0.8.3 (2025-06-10)
+
+### Fix
+
+- ensure only culmination events are considered for passes
+
 ## v0.8.2 (2025-06-06)
 
 ### Fix
