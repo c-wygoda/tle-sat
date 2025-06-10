@@ -3,3 +3,4 @@ __pycache__
 .nox
 .pytest_cache
 .ruff_cache
+pytest-coverage.txt
