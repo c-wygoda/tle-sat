@@ -15,7 +15,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/bootstrap
-      - run: pipx install poetry
-      - run: poetry build
+      - run: uv build
       - name: publish package distributions to pypi
         uses: pypa/gh-action-pypi-publish@release/v1

@@ -7,9 +7,7 @@ set -e
 
 cd "$(dirname "$0")/.."
 
-poetry bundle check >/dev/null 2>&1  || {
-  echo "==> Installing Poetry managed dependencies…"
-  poetry install --with=dev
-}
+echo "==> Installing uv managed dependencies…"
 
-poetry run pre-commit install
+uv sync
+uv run pre-commit install
